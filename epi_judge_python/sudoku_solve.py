@@ -1,7 +1,7 @@
 import copy
 import functools
 import math
-from typing import List
+from typing import List, Optional
 
 from test_framework import generic_test
 from test_framework.test_failure import TestFailure
@@ -48,19 +48,19 @@ def valid(b: List[List[int]]):
 
     return True
 
-def f(b: List[List[int]], i: int, j: int, r: List[List[List[int]]]) -> List[List[List[int]]]:
+def f(b: List[List[int]], i: int, j: int) -> Optional[List[List[int]]]:
     n, m = len(b), len(b[0])
     if n != m:
         raise RuntimeError("n, m are not equal")
 
     if (i, j) == (n, 0):
-        r.append(b)
-        return r
+        return b
 
     nexti, nextj = i, j+1
     if j+1 >= n:
         nexti, nextj = i+1, 0
 
+    r = None
     if b[i][j] == 0:
         for x in range(1, n+1):
             bb = deepcopy(b)
@@ -68,18 +68,21 @@ def f(b: List[List[int]], i: int, j: int, r: List[List[List[int]]]) -> List[List
             if not valid(bb):
                 continue
             else:
-                r = f(bb, nexti, nextj, r)
+                r = f(bb, nexti, nextj)
+                if r:
+                    return r
     else:
-        r = f(b, nexti, nextj, r)
-    
+        r = f(b, nexti, nextj)
+
     return r
 
+
 def solve_sudoku(partial_assignment: List[List[int]]) -> bool:
-    r = f(partial_assignment, 0, 0, [])
-    if len(r) == 0:
+    b = f(partial_assignment, 0, 0)
+    if not b:
         return False
     else:
-        partial_assignment[:] = r[0][:]
+        partial_assignment[:] = b[:]
         return True
 
 def assert_unique_seq(seq):
