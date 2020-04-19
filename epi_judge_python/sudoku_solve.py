@@ -7,11 +7,80 @@ from test_framework import generic_test
 from test_framework.test_failure import TestFailure
 from test_framework.test_utils import enable_executor_hook
 
+from copy import deepcopy
 
-def solve_sudoku(partial_assignment: List[List[int]]) -> bool:
-    # TODO - you fill in here.
+def valid(b: List[List[int]]):
+    n = len(b)
+    for i in range(n):
+        s, nzeros = set(), 0
+        for j in range(n):
+            if b[i][j] != 0:
+                s.add(b[i][j])
+            else:
+                nzeros += 1
+
+        if nzeros + len(s) < n:
+            return False
+
+    for j in range(n):
+        s, nzeros = set(), 0
+        for i in range(n):
+            if b[i][j] != 0:
+                s.add(b[i][j])
+            else:
+                nzeros += 1
+
+        if nzeros + len(s) < n:
+            return False
+   
+    for i in range(0, n, 3):
+        for j in range(0, n, 3):
+            s, nzeros = set(), 0
+            for ii in range(i, i+3):
+                for jj in range(j, j+3):
+                    if b[ii][jj] != 0:
+                        s.add(b[ii][jj])
+                    else:
+                        nzeros += 1
+            
+            if nzeros + len(s) < n:
+                return False
+
     return True
 
+def f(b: List[List[int]], i: int, j: int, r: List[List[List[int]]]) -> List[List[List[int]]]:
+    n, m = len(b), len(b[0])
+    if n != m:
+        raise RuntimeError("n, m are not equal")
+
+    if (i, j) == (n, 0):
+        r.append(b)
+        return r
+
+    nexti, nextj = i, j+1
+    if j+1 >= n:
+        nexti, nextj = i+1, 0
+
+    if b[i][j] == 0:
+        for x in range(1, n+1):
+            bb = deepcopy(b)
+            bb[i][j] = x
+            if not valid(bb):
+                continue
+            else:
+                r = f(bb, nexti, nextj, r)
+    else:
+        r = f(b, nexti, nextj, r)
+    
+    return r
+
+def solve_sudoku(partial_assignment: List[List[int]]) -> bool:
+    r = f(partial_assignment, 0, 0, [])
+    if len(r) == 0:
+        return False
+    else:
+        partial_assignment[:] = r[0][:]
+        return True
 
 def assert_unique_seq(seq):
     seen = set()
