@@ -8,8 +8,29 @@ from test_framework.test_utils import enable_executor_hook
 
 
 def has_cycle(head: ListNode) -> Optional[ListNode]:
-    # TODO - you fill in here.
-    return None
+    if head is None or head.next is None:
+        return None
+
+    s, f = head.next, head.next.next
+    while s is not None and f is not None and s is not f:
+        s = s.next
+
+        f = f.next
+        if f is None:
+            return None
+        f = f.next
+
+    if f is None:
+        return None
+
+    # we detected a loop: let's find the first node in the loop
+    q = s
+    p = head
+    while p is not q:
+        p = p.next
+        q = q.next
+
+    return p
 
 
 @enable_executor_hook
