@@ -10,12 +10,14 @@ def inorder(tree: BstNode, r: List[int], interval: Interval) -> None:
     if tree is None:
         return
 
-    inorder(tree.left, r, interval)
+    if tree.data >= interval.left:
+        inorder(tree.left, r, interval)
 
     if interval.left <= tree.data <= interval.right:
         r.append(tree.data)
 
-    inorder(tree.right, r, interval)
+    if tree.data < interval.right:
+        inorder(tree.right, r, interval)
 
 def range_lookup_in_bst(tree: BstNode, interval: Interval) -> List[int]:
     r = []
