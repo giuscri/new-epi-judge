@@ -9,11 +9,15 @@ def power(x: float, y: int) -> float:
         y *= -1
         x = 1 / x
 
-    p = power(x, y // 2)
-    if y & 1 == 0:
-        return p * p
-    else:
-        return x * p * p
+    r = 1.0
+    while y > 0:
+        if y & 1 == 1:
+            r *= x
+
+        x *= x
+        y >>= 1
+
+    return r
 
 
 if __name__ == '__main__':
