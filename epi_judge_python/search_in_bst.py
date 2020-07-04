@@ -5,7 +5,20 @@ from test_framework import generic_test
 
 
 def search_bst(tree: BstNode, key: int) -> Optional[BstNode]:
-    # TODO - you fill in here.
+    if tree is None:
+        return None
+
+    n = search_bst(tree.left, key)
+    if n is not None:
+        return n
+
+    if tree.data == key:
+        return tree
+
+    n = search_bst(tree.right, key)
+    if n is not None:
+        return n
+
     return None
 
 
