@@ -5,22 +5,14 @@ from test_framework import generic_test
 
 
 def search_bst(tree: BstNode, key: int) -> Optional[BstNode]:
-    if tree is None:
-        return None
+    ptr = tree
+    while ptr is not None and ptr.data != key:
+        if key < ptr.data:
+            ptr = ptr.left
+        else:
+            ptr = ptr.right
 
-    n = search_bst(tree.left, key)
-    if n is not None:
-        return n
-
-    if tree.data == key:
-        return tree
-
-    n = search_bst(tree.right, key)
-    if n is not None:
-        return n
-
-    return None
-
+    return ptr
 
 def search_bst_wrapper(tree, key):
     result = search_bst(tree, key)
