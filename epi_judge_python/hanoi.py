@@ -7,10 +7,22 @@ from test_framework.test_utils import enable_executor_hook
 
 NUM_PEGS = 3
 
+def f(n: int, from_peg: int, to_peg: int) -> List[List[int]]:
+    if n == 1:
+        return [[from_peg, to_peg]]
+
+    middle = from_peg
+    while middle == from_peg or middle == to_peg:
+        middle = (middle + 1) % NUM_PEGS
+
+    r = []
+    r += f(n-1, from_peg, middle)
+    r += f(1, from_peg, to_peg)
+    r += f(n-1, middle, to_peg)
+    return r
 
 def compute_tower_hanoi(num_rings: int) -> List[List[int]]:
-    # TODO - you fill in here.
-    return []
+    return f(num_rings, 0, 2)
 
 
 @enable_executor_hook
