@@ -2,41 +2,23 @@ from binary_tree_node import BinaryTreeNode
 from test_framework import generic_test
 from typing import List
 
+def f(left: BinaryTreeNode, right: BinaryTreeNode) -> bool:
+    if not left and not right:
+        return True
+
+    if left and not right or not left and right:
+        return False
+
+    if left.data != right.data:
+        return False
+
+    return f(left.left, right.right) and f(left.right, right.left)
 
 def is_symmetric(tree: BinaryTreeNode) -> bool:
-    if not tree:
+    if tree is None:
         return True
 
-    if not tree.left and tree.right or tree.left and not tree.right:
-        return False
-
-    if not tree.left and not tree.right:
-        return True
-
-    p_queue: List[BinaryTreeNode] = [tree.left]
-    q_queue: List[BinaryTreeNode] = [tree.right]
-
-    while p_queue and q_queue:
-        p = p_queue.pop(0)
-        q = q_queue.pop(0)
-
-        if p.data != q.data:
-            return False
-
-        if p.right:
-            p_queue.append(p.right)
-        if p.left:
-            p_queue.append(p.left)
-        if q.left:
-            q_queue.append(q.left)
-        if q.right:
-            q_queue.append(q.right)
-
-    if not p_queue and q_queue or p_queue and not q_queue:
-        return False
-
-    return True
-
+    return f(tree.left, tree.right)
 
 if __name__ == '__main__':
     exit(
