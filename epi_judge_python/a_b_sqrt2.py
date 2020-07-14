@@ -1,72 +1,161 @@
-from typing import List, NamedTuple, Set
-from math import sqrt
+from typing import List, Optional, Tuple
+from math import sqrt, isclose
+from functools import total_ordering
 
 from test_framework import generic_test
 
-class Y(NamedTuple):
-    a: int
-    b: int
+class V:
+    def __init__(self, a: int, b: int):
+        self.a = a
+        self.b = b
 
-class HeapNode(NamedTuple):
-    y: Y
+class BSTNode:
+    def __init__(self, v=V(a=0, b=0)):
+        self.v: V = v
+        self.left: Optional[BSTNode] = None
+        self.right: Optional[BSTNode] = None
 
     @property
     def k(self) -> float:
-        return self.y.a + self.y.b * sqrt(2)
+        return self.v.a + self.v.b * sqrt(2)
 
-    def __eq__(self, other) -> bool:
-        return self.k == other.k
+    @property
+    def height(self) -> int:
+        lh = self.left.height if self.left is not None else -1
+        rh = self.right.height if self.right is not None else -1
+        return max(lh, rh) + 1
 
-    def __lt__(self, other) -> bool:
-        return self.k < other.k
+    @property
+    def balanced(self) -> bool:
+        lh = self.left.height if self.left is not None else -1
+        rh = self.right.height if self.right is not None else -1
+        return abs(lh - rh) <= 1
 
-def insert(min_heap: List[HeapNode], x: HeapNode) -> None:
-    min_heap.append(x)
-    i = len(min_heap)-1
-    while i > 0:
-        parent_idx = (i-1) // 2
-        if min_heap[i].k < min_heap[parent_idx].k:
-            min_heap[i], min_heap[parent_idx] = min_heap[parent_idx], min_heap[i]
-            i = parent_idx
-        else:
-            break
+    def __repr__(self) -> str:
+        return f"({self.k}, ({self.v.a}, {self.v.b}))"
 
-def extract_min(min_heap: List[HeapNode]) -> HeapNode:
-    min_heap[0], min_heap[-1] = min_heap[-1], min_heap[0]
-    n = min_heap.pop()
-    i = 0
-    while i < len(min_heap):
-        if 2*i+2 < len(min_heap) and min_heap[2*i+2] < min_heap[2*i+1]:
-            smallest_child_idx = 2*i+2
-        elif 2*i+1 < len(min_heap):
-            smallest_child_idx = 2*i+1
-        else:
-            break
+def right_rotate(x: BSTNode) -> BSTNode:
+    y = x.left
+    if y is None:
+        raise RuntimeError("left subtree must be not None")
 
-        if min_heap[smallest_child_idx].k < min_heap[i].k:
-            min_heap[smallest_child_idx], min_heap[i] = min_heap[i], min_heap[smallest_child_idx]
-            i = smallest_child_idx
-        else:
-            break
+    x.left = y.right
+    y.right = x
+    return y
 
-    return n
+def left_rotate(y: BSTNode) -> BSTNode:
+    x = y.right
+    if x is None:
+        raise RuntimeError("right subtree must be not None")
 
+    y.right = x.left
+    x.left = y
+    return x
+
+def insert(tree: Optional[BSTNode], node: BSTNode) -> BSTNode:
+    if tree is None:
+        return node
+
+    if isclose(node.k, tree.k):
+        return tree
+    elif node.k < tree.k:
+        tree.left = insert(tree.left, node)
+        if not tree.balanced and tree.left is not None and node.k < tree.left.k: # left-left case
+            tree = right_rotate(tree)
+            assert tree.balanced
+        elif not tree.balanced and tree.left is not None and node.k > tree.left.k: # left-right case
+            tree.left = left_rotate(tree.left)
+            assert tree.left.balanced
+            tree = right_rotate(tree)
+            assert tree.balanced
+        return tree
+    else: # node.k > tree.k
+        tree.right = insert(tree.right, node)
+        if not tree.balanced and tree.right is not None and node.k > tree.right.k: # right-right case
+            tree = left_rotate(tree)
+            assert tree.balanced
+        elif not tree.balanced and tree.right is not None and node.k < tree.right.k: # right-left case
+            tree.right = right_rotate(tree.right)
+            tree = left_rotate(tree)
+            assert tree.balanced
+        return tree
+
+def delete(tree: Optional[BSTNode], k: float) -> Optional[BSTNode]:
+    if tree is None:
+        return tree
+
+    if isclose(k, tree.k):
+        if tree.left is None and tree.right is None:
+            tree = None
+        elif tree.left is not None and tree.right is None: # one child
+            tree = tree.left
+        elif tree.left is None and tree.right is not None: # one child
+            tree = tree.right
+        else: # two children: return inorder successor
+            prev = None
+            ptr = tree.right
+            while ptr.left is not None:
+                prev = ptr
+                ptr = ptr.left
+
+            assert ptr is not None
+            tree.v = ptr.v
+            prev.left = None
+    elif k < tree.k:
+        tree.left = delete(tree.left, k)
+    else: # k > tree.k
+        tree.right = delete(tree.right, k)
+
+    if tree is None: # we had only the node we deleted
+        return None
+
+    if tree.balanced:
+        return tree
+
+    z = tree
+    assert z.left is not None or z.right is not None
+    if z.left is None or z.right.height > z.left.height:
+        y = z.right
+        if y.left is None or y.right is not None and y.right.height > y.left.height: # right-right
+            z = left_rotate(z)
+        else: # right-left
+            z.right = right_rotate(z.right)
+            z = left_rotate(z)
+    elif z.right is None or z.left.height > z.right.height:
+        y = z.left
+        if y.right is None or y.left is not None and y.left.height > y.right.height: # left-left
+            z = right_rotate(z)
+        else: # left-right
+            z.left = left_rotate(z.left)
+            z = right_rotate(z)
+    else:
+        assert False
+
+    tree = z
+    return tree
+
+def pop_minimum(tree: Optional[BSTNode]) -> Tuple[Optional[BSTNode], Optional[BSTNode]]:
+    if tree is None:
+        return (None, None)
+
+    ptr = tree
+    while ptr.left is not None:
+        ptr = ptr.left
+
+    tree = delete(tree, ptr.k)
+    return (tree, ptr)
 
 def generate_first_k_a_b_sqrt2(k: int) -> List[float]:
-    heap: List[HeapNode] = [HeapNode(Y(a=0, b=0))]
-    into_heap: Set[float] = {0}
+    tree: BSTNode = BSTNode(v=V(a=0, b=0))
     r: List[float] = []
     for _ in range(k):
-        n = extract_min(heap)
-        r.append(n.k)
-        n1 = HeapNode(Y(n.y.a+1, n.y.b))
-        n2 = HeapNode(Y(n.y.a, n.y.b+1))
-        if n1.k not in into_heap:
-            insert(heap, n1)
-            into_heap.add(n1.k)
-        if n2.k not in into_heap:
-            insert(heap, n2)
-            into_heap.add(n2.k)
+        assert tree is not None
+        tree, node = pop_minimum(tree)
+        r.append(node.k)
+        n1 = BSTNode(V(node.v.a+1, node.v.b))
+        n2 = BSTNode(V(node.v.a, node.v.b+1))
+        tree = insert(tree, n1)
+        tree = insert(tree, n2)
 
     return r
 
