@@ -2874,7 +2874,7 @@ problem_mapping = {
                 "total": 1596
             },
             "Python: regular_expression.py": {
-                "passed": 0,
+                "passed": 1596,
                 "total": 1596
             }
         },
