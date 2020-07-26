@@ -2832,7 +2832,7 @@ problem_mapping = {
                 "total": 100
             },
             "Python: sorted_list_to_bst.py": {
-                "passed": 0,
+                "passed": 100,
                 "total": 100
             }
         },
