@@ -1,9 +1,28 @@
 from test_framework import generic_test
 
+M = {
+    "I": 1,
+    "V": 5,
+    "X": 10,
+    "L": 50,
+    "C": 100,
+    "D": 500,
+    "M": 1000
+}
 
 def roman_to_integer(s: str) -> int:
-    # TODO - you fill in here.
-    return 0
+    prev = None
+    n = 0
+    for c in s:
+        curr = M[c]
+        if prev is not None and prev < curr:
+            n = n - prev + (curr - prev)
+        else:
+            n += curr
+
+        prev = curr
+
+    return n
 
 
 if __name__ == '__main__':
