@@ -4,8 +4,19 @@ from test_framework import generic_test
 
 
 def majority_search(stream: Iterator[str]) -> str:
-    # TODO - you fill in here.
-    return ''
+    n = 1
+    candidate = next(stream)
+    for x in stream:
+        if n == 0:
+            candidate = x
+            n += 1
+        elif n > 0 and x != candidate:
+            n -= 1
+        elif n > 0 and x == candidate:
+            n += 1
+        else: # n < 0
+            assert False
+    return candidate
 
 
 def majority_search_wrapper(stream):
