@@ -2,17 +2,18 @@ from typing import List, Set
 
 from test_framework import generic_test
 
+def has_two_sum(A: List[int], t: int) -> bool:
+    S = set(A)
+    for a in A:
+        if t-a in S:
+            return True
+
+    return False
 
 def has_three_sum(A: List[int], t: int) -> bool:
-    S: Set[int] = set()
     for a in A:
-        S.add(t-a)
-
-    n = len(A)
-    for i in range(n):
-        for j in range(n):
-            if A[i] + A[j] in S:
-                return True
+        if has_two_sum(A, t-a):
+            return True
 
     return False
 
