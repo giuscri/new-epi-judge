@@ -5,12 +5,29 @@ from test_framework import generic_test
 from test_framework.test_failure import TestFailure
 from test_framework.test_utils import enable_executor_hook
 
+def decompose_into_dictionary_words(s: str,
+                                    D: Set[str]) -> List[str]:
+    W = 0
+    for w in D:
+        W = max(len(w), W)
 
-def decompose_into_dictionary_words(domain: str,
-                                    dictionary: Set[str]) -> List[str]:
-    # TODO - you fill in here.
-    return []
+    n = len(s)
+    T = [[] for _ in range(n)]
+    for i in range(n):
+        j = i
+        curr = ""
+        while j >= 0 and j >= i-W:
+            curr = s[j]+curr
+            if curr in D and T[j-1]:
+                T[i] = T[j-1]+[curr]
+                break
 
+            j -= 1
+
+        if j < 0:
+            T[i] = [curr] if curr in D else []
+
+    return T[-1]
 
 @enable_executor_hook
 def decompose_into_dictionary_words_wrapper(executor, domain, dictionary,
